@@ -1,53 +1,10 @@
 from rest_framework.decorators import api_view
-from .models import Product, ProductType, BaseUrl
+from .models import Product, ProductType, BaseUrl,Location,State
 from django.shortcuts import get_object_or_404
 from .messages.ResponseBack import ResponseBack, LocalResponseBack
 from .messages.ResponseCode import ResponseCode
 from .messages.ResponseMessage import ResponseMessage
-
-
-def get_base_url():
-    base_url_obj = BaseUrl.objects.first()
-    return base_url_obj.url if base_url_obj else ''
-
-
-def getProductData(product):
-    try:
-        base_url = get_base_url()
-
-        data = {
-            "id": product.id,
-            "Name": product.Name,
-            "About": product.About,
-            "Rating": float(product.Rating),
-            "Tag": product.Tag,
-            "KeyFeatures": product.KeyFeatures,
-            "NoOfReviews": product.NoOfReviews,
-            "ProductType": product.ProductType.Value if product.ProductType else None,
-            "RelatedProducts": [rel.Name for rel in product.RelatedProducts.all()],
-            "Images": [base_url + img.Image.url for img in product.Images.all()],
-            "Description": {
-                "Description": product.Description.Description,
-                "KeyPoints": product.Description.KeyPoints
-            } if hasattr(product, 'Description') else {},
-            "Specification": product.Specification.Specification if hasattr(product, 'Specification') else {},
-            "Application": product.Application.Value if hasattr(product, 'Application') else {},
-            "TechnicalAdvantage": product.TechnicalAdvantage.Value if hasattr(product, 'TechnicalAdvantage') else {},
-        }
-
-        return LocalResponseBack(
-            message=ResponseMessage.PRODUCT_FOUND,
-            data=data,
-            code=ResponseCode.SUCCESS
-        )
-
-    except Exception as e:
-        return LocalResponseBack(
-            message=str(e),
-            data={},
-            code=ResponseCode.FAILURE
-        )
-
+from .UTILS.Names import Names
 
 @api_view(['GET'])
 def getAllProductsView(request):
@@ -62,7 +19,7 @@ def getAllProductsView(request):
 
         data_list = []
         for product in products:
-            result = getProductData(product)
+            result = getProductDisplayData(product)
             if result.code == ResponseCode.SUCCESS:
                 data_list.append(result.data)
 
@@ -81,17 +38,10 @@ def getAllProductsView(request):
 
 
 @api_view(['GET'])
-def getProductsView(request):
+def getProductsView(request,productId):
     try:
-        name = request.GET.get('name')
-        if not name:
-            return ResponseBack(
-                message=ResponseMessage.MISSING_NAME_PARAM,
-                data={},
-                code=ResponseCode.FAILURE
-            )
-
-        product = Product.objects.filter(Name=name).first()
+        
+        product = Product.objects.filter(id=productId).first()
         if not product:
             return ResponseBack(
                 message=ResponseMessage.PRODUCT_NOT_FOUND,
@@ -124,15 +74,8 @@ def getProductsView(request):
 @api_view(['GET'])
 def getProductsByTypeView(request,producttype):
     try:
-        type_value = request.GET.get('type')
-        if not type_value:
-            return ResponseBack(
-                message=ResponseMessage.MISSING_TYPE_PARAM,
-                data={},
-                code=ResponseCode.FAILURE
-            )
 
-        product_type = ProductType.objects.filter(Value=producttype).first()
+        product_type = ProductType.objects.filter(id=producttype).first()
         if not product_type:
             return ResponseBack(
                 message=ResponseMessage.PRODUCT_TYPE_NOT_FOUND,
@@ -150,12 +93,12 @@ def getProductsByTypeView(request,producttype):
 
         data_list = []
         for product in products:
-            result = getProductData(product)
+            result = getProductDisplayData(product)
             if result.code == ResponseCode.SUCCESS:
                 data_list.append(result.data)
 
         return ResponseBack(
-            message=f"{ResponseMessage.PRODUCTS_FOUND} of type '{type_value}'",
+            message=ResponseMessage.PRODUCTS_FOUND,
             data=data_list,
             code=ResponseCode.SUCCESS
         )
@@ -164,5 +107,158 @@ def getProductsByTypeView(request,producttype):
         return ResponseBack(
             message=str(e),
             data={},
+            code=ResponseCode.FAILURE
+        )
+
+@api_view(['GET'])
+def GetLocations(request):
+    try:
+        locations = Location.objects.all()
+        locations_data = []
+        for location in locations:
+            locadata = {
+                Names.LABLE: location.lable,
+                Names.NAME: location.name,
+                Names.ID: location.id}
+            locations_data.append(locadata)
+        return ResponseBack(
+            code=ResponseCode.SUCCESS,
+            message=ResponseMessage.LOCATION_FOUND_SUCESS,
+            data=locations_data)
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.LOCATION_FOUND_ERROR,
+            code=ResponseCode.ERROR,
+            data=str(e))
+
+@api_view(['GET'])
+def GetCitys(request):
+    try:
+        states = State.objects.all()
+        states_data = []
+        for state in states:
+            statelocations = state.locations.all()
+            locations_data = []
+            for location in statelocations:
+                locadata = {
+                    Names.LABLE: location.lable,
+                    Names.NAME: location.name,
+                    Names.ID: location.id,
+                    Names.IMAGE: Names.BASE_URL + location.image.url}
+                locations_data.append(locadata)
+            state_data = {
+                Names.NAME: state.name,
+                Names.LOCATIONS: locations_data
+            }
+            states_data.append(state_data)
+        return ResponseBack(
+            code=ResponseCode.SUCCESS,
+            message=ResponseMessage.LOCATION_FOUND_SUCESS,
+            data=states_data)
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.LOCATION_FOUND_ERROR,
+            code=ResponseCode.ERROR,
+            data=str(e))
+
+@api_view(['POST'])
+def GetLocationPage(request,locationId):
+    try:
+        loc = request.data.get(Names.LOCATION)
+        location = Location.objects.filter(id=locationId).first()
+        page = location.locationpage.first()
+        data = {
+            Names.TITLE: page.Title,
+            Names.DESCRIPTION: page.Description,
+            Names.IMAGE: Names.BASE_URL + page.BannerImage.url,
+            Names.META_TITLE: page.MetaTitle,
+            Names.META_DESCRIPTION: page.MetaDescription,
+            Names.META_KEYWORD: page.MetaKeywords,
+            Names.META_URL: page.MetaUrl,
+            Names.META_CANONICALURL: page.MetaCanonical}
+        return ResponseBack(
+            code=ResponseCode.SUCCESS,
+            message=ResponseMessage.ABOUT_FOUND_SUCESS,
+            data=data)
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.ABOUT_FOUND_ERROR,
+            code=ResponseCode.ERROR,
+            data=str(e))
+
+# ***************************** Helper functions *****************************
+
+def get_base_url():
+    base_url_obj = BaseUrl.objects.first()
+    return base_url_obj.url if base_url_obj else Names.BASE_URL
+
+
+def getProductDisplayData(product):
+    try:
+        base_url = get_base_url()
+
+        data = {
+            Names.ID: product.id,
+            Names.NAME: product.Name,
+            Names.ABOUT: product.About,
+            Names.RATING: float(product.Rating),
+            Names.TAG: product.Tag,
+            Names.KEY_FEATURES: product.KeyFeatures,
+            Names.NO_OF_REVIEWS: product.NoOfReviews,
+            Names.PRODUCT_TYPE: product.ProductType.Value if product.ProductType else None,
+            Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
+        }
+
+        return LocalResponseBack(
+            message=ResponseMessage.PRODUCT_FOUND,
+            data=data,
+            code=ResponseCode.SUCCESS
+        )
+
+    except Exception as e:
+        return LocalResponseBack(
+            message=str(e),
+            data={},
+            code=ResponseCode.FAILURE
+        )
+def getProductData(product):
+    try:
+        base_url = get_base_url()
+        related_products = []
+        relProds = product.RelatedProducts.all()
+        for rel in relProds:
+            reldata = getProductDisplayData(rel)
+            if reldata.code == ResponseCode.SUCCESS:
+                related_products.append(reldata.data)
+        data = {
+            Names.ID: product.id,
+            Names.NAME: product.Name,
+            Names.ABOUT: product.About,
+            Names.RATING: float(product.Rating),
+            Names.TAG: product.Tag,
+            Names.KEY_FEATURES: product.KeyFeatures,
+            Names.NO_OF_REVIEWS: product.NoOfReviews,
+            Names.PRODUCT_TYPE: product.ProductType.Value if product.ProductType else None,
+            Names.RELATED_PRODUCTS: related_products,
+            Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
+            Names.DESCRIPTION: {
+                Names.DESCRIPTION: product.Description.Description,
+                Names.KEY_POINTS: product.Description.KeyPoints
+            },
+            Names.SPECIFICATION: product.Specification,
+            Names.APPLICATION: product.Application,
+            Names.TECHNICAL_ADVANTAGE: product.TechnicalAdvantage,
+        }
+
+        return LocalResponseBack(
+            message=ResponseMessage.PRODUCT_FOUND,
+            data=data,
+            code=ResponseCode.SUCCESS
+        )
+
+    except Exception as e:
+        return LocalResponseBack(
+            message=ResponseMessage.PRODUCT_FOUND_ERROR,
+            data=str(e),
             code=ResponseCode.FAILURE
         )
