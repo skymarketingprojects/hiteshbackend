@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view
-from .models import Product, ProductType, BaseUrl,Location,State
+from .models import Product, ProductType, BaseUrl,Location,State,Blog
 from django.shortcuts import get_object_or_404
 from .messages.ResponseBack import ResponseBack, LocalResponseBack
 from .messages.ResponseCode import ResponseCode
@@ -10,6 +10,7 @@ from .UTILS.Names import Names
 def getAllProductsView(request):
     try:
         products = Product.objects.all()
+        
         if not products.exists():
             return ResponseBack(
                 message=ResponseMessage.PRODUCTS_NOT_FOUND,
@@ -22,10 +23,18 @@ def getAllProductsView(request):
             result = getProductDisplayData(product)
             if result.code == ResponseCode.SUCCESS:
                 data_list.append(result.data)
+        productTypes = ProductType.objects.all()
+        typeData = []
+        for prodType in productTypes:
+            tempData = {
+                Names.ID:prodType.id,
+                Names.NAME:prodType.Value
+            }
+            typeData.append(tempData)
 
         return ResponseBack(
             message=ResponseMessage.PRODUCTS_FOUND,
-            data=data_list,
+            data={Names.PRODUCTS:data_list,Names.PRODUCT_TYPE:typeData},
             code=ResponseCode.SUCCESS
         )
 
@@ -186,12 +195,78 @@ def GetLocationPage(request,locationId):
             code=ResponseCode.ERROR,
             data=str(e))
 
+@api_view(['GET'])
+def getAllBlogsView(request):
+        try:
+            blogs = Blog.objects.all()
+            blogsdata = []
+            for blog in blogs:
+                data = getBlogData(blog)
+                #if data.code == ResponseCodes.SUCCESS:
+                blogsdata.append(data.data)
+            return ResponseBack(message=ResponseMessage.BLOG_FOUND_SUCESS, data=blogsdata, code=ResponseCode.SUCCESS)
+        except Exception as e:
+            return ResponseBack(message=ResponseMessage.BLOG_FOUND_ERROR, data=str(e), code=ResponseCode.ERROR)
+
+@api_view(['GET'])
+def getBlogView(request,blogId):
+    try:
+        blog = Blog.objects.filter(id=blogId).first()
+        blogresp = getBlogData(blog)
+        return ResponseBack(
+            message=blogresp.message,
+            code=blogresp.code,
+            data=blogresp.data
+        )
+    except Exception as e:
+        return ResponseBack(message=ResponseMessage.BLOG_FOUND_ERROR, data=str(e), code=ResponseCode.ERROR)
+
+@api_view(['GET'])
+def getProductTypeView(request):
+    try:
+        productTypes = ProductType.objects.all()
+        typeData = []
+        for prodType in productTypes:
+            tempData = {
+                Names.ID:prodType.id,
+                Names.NAME:prodType.Value
+            }
+            typeData.append(tempData)
+        return ResponseBack(
+            message=ResponseMessage.PRODUCT_TYPE_FOUND,
+            data = typeData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.PRODUCT_TYPE_NOT_FOUND,
+            data = str(e),
+            code=ResponseCode.ERROR
+        )
+
+
 # ***************************** Helper functions *****************************
 
 def get_base_url():
     base_url_obj = BaseUrl.objects.first()
     return base_url_obj.url if base_url_obj else Names.BASE_URL
 
+def getBlogData( blog):
+        try:
+            base_url = Names.BASE_URL
+            data = {
+                Names.ID: blog.id,
+                Names.TITLE: blog.title,
+                Names.CONTENT: blog.text.html,
+                Names.WRITER: blog.writer,
+                Names.DESCRIPTION: blog.discription,
+                Names.IMAGE_SQ: base_url + blog.image_sq.url,
+                Names.IMAGE_HR: base_url + blog.image_hr.url,
+                Names.CREATED_AT: blog.created_at
+            }
+            return LocalResponseBack(ResponseMessage.BLOG_FOUND_SUCESS, data=data, code=ResponseCode.SUCCESS)
+        except Exception as e:
+            return LocalResponseBack(ResponseMessage.BLOG_FOUND_ERROR, data=str(e), code=ResponseCode.ERROR)
 
 def getProductDisplayData(product):
     try:
@@ -202,10 +277,12 @@ def getProductDisplayData(product):
             Names.NAME: product.Name,
             Names.ABOUT: product.About,
             Names.RATING: float(product.Rating),
+            Names.IMAGE:base_url+product.Image.url,
+            Names.PRICE: product.Price,
             Names.TAG: product.Tag,
             Names.KEY_FEATURES: product.KeyFeatures,
             Names.NO_OF_REVIEWS: product.NoOfReviews,
-            Names.PRODUCT_TYPE: product.ProductType.Value if product.ProductType else None,
+            Names.PRODUCT_TYPE: {Names.NAME:product.ProductType.Value,Names.ID:product.ProductType.id} if product.ProductType else None,
             Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
         }
 
@@ -234,17 +311,21 @@ def getProductData(product):
             Names.ID: product.id,
             Names.NAME: product.Name,
             Names.ABOUT: product.About,
+            Names.MODEL:product.Model,
+            Names.SKU:product.Sku,
+            Names.PRICE:product.Price,
+            Names.WARRENTY:product.Warranty,
+            Names.SHIPPING:product.Shipping,
+            Names.ORIGNAL_PRICE:product.OrignalPrice,
             Names.RATING: float(product.Rating),
             Names.TAG: product.Tag,
             Names.KEY_FEATURES: product.KeyFeatures,
             Names.NO_OF_REVIEWS: product.NoOfReviews,
-            Names.PRODUCT_TYPE: product.ProductType.Value if product.ProductType else None,
+            Names.PRODUCT_TYPE:{Names.NAME:product.ProductType.Value,Names.ID:product.ProductType.id}  if product.ProductType else None,
             Names.RELATED_PRODUCTS: related_products,
             Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
-            Names.DESCRIPTION: {
-                Names.DESCRIPTION: product.Description.Description,
-                Names.KEY_POINTS: product.Description.KeyPoints
-            },
+            Names.DESCRIPTION: product.Description.Description,
+            Names.KEY_POINTS: product.Description.KeyPoints,
             Names.SPECIFICATION: product.Specification,
             Names.APPLICATION: product.Application,
             Names.TECHNICAL_ADVANTAGE: product.TechnicalAdvantage,
