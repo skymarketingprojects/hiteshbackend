@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('products/', views.getAllProductsView, name='get_all_products'),
@@ -17,6 +19,8 @@ urlpatterns = [
     path("client-logos/",views.getClientLogoView,name="get_client_logos"),
     path("product-dropdown/",views.getProductDropdownView,name="get_product_dropdown"),
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 #hiteshuser
 #hiteshpass
