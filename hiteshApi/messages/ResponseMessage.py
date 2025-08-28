@@ -18,4 +18,7 @@ class ResponseMessage:
 
     BLOG_FOUND_SUCESS = "Blog found"
     BLOG_FOUND_ERROR = "Blog not found"
+
+    IMAGES_FOUND_SUCCESS = "Images found"
+    IMAGE_FOUND_ERROR = "Images not found"
     

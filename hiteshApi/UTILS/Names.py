@@ -27,6 +27,9 @@ class Names:
     SHIPPING="shipping"
     WARRENTY="warranty"
 
+    INDEX="index"
+    SLUG="slug"
+
 
     TITLE = "title"
     DESCRIPTION = "description"
@@ -37,13 +40,17 @@ class Names:
     META_URL = "meta_url"
     META_CANONICALURL = "meta_canonical"
 
-    LABLE="lable"
+    LABLE="label"
+    URL = "url"
 
     CONTENT ="content"
     WRITER="authorName"
     IMAGE_SQ= "imageSq"
     IMAGE_HR="imageHr"
     CREATED_AT="date"
+
+    POSITION="position"
+    COMPANY="company"
 
     BASE_URL = 'https://backend.malviyarollingmill.com'
 

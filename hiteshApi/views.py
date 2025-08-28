@@ -1,10 +1,11 @@
 from rest_framework.decorators import api_view
-from .models import Product, ProductType, BaseUrl,Location,State,Blog
+from .models import Product, ProductType, BaseUrl,Location,State,Blog,HeroImages,Gallery,Testimonial,ClientLogo
 from django.shortcuts import get_object_or_404
 from .messages.ResponseBack import ResponseBack, LocalResponseBack
 from .messages.ResponseCode import ResponseCode
 from .messages.ResponseMessage import ResponseMessage
 from .UTILS.Names import Names
+import re
 
 @api_view(['GET'])
 def getAllProductsView(request):
@@ -244,7 +245,134 @@ def getProductTypeView(request):
             code=ResponseCode.ERROR
         )
 
+@api_view(['GET'])
+def getHeroImagesView(request):
+    try:
+        images = HeroImages.objects.all()
+        imageData = []
+        baseUrl = get_base_url()
+        for image in images:
+            data = {
+                Names.ID:image.id,
+                Names.IMAGE:baseUrl+image.image.url,
+                Names.INDEX:image.index
+            }
+            imageData.append(data)
+        return ResponseBack(
+            message=ResponseMessage.IMAGES_FOUND_SUCCESS,
+            data=imageData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.IMAGE_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.ERROR
+        )
 
+@api_view(['GET'])
+def getGalleryImage(request):
+    try:
+        galleryImages = Gallery.objects.all()
+        baseUrl = get_base_url()
+        imageData = []
+        for gallery in galleryImages:
+            data= {
+                Names.ID:gallery.id,
+                Names.IMAGE:baseUrl+gallery.image.url,
+                Names.INDEX: gallery.index,
+                Names.PRODUCT_TYPE:{Names.NAME:gallery.ProductType.Value,Names.ID:gallery.ProductType.id} 
+            }
+            imageData.append(data)
+        return ResponseBack(
+            message=ResponseMessage.IMAGES_FOUND_SUCCESS,
+            data=imageData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.IMAGE_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.ERROR
+        )
+
+@api_view(['GET'])
+def getTestimonialView(request):
+    try:
+        testimonials = Testimonial.objects.all()
+        testimonialData = []
+        baseUrl = get_base_url()
+        for testimonial in testimonials:
+            data = {
+                Names.ID:testimonial.id,
+                Names.NAME:testimonial.name,
+                Names.POSITION:testimonial.position,
+                Names.COMPANY:testimonial.company,
+                Names.IMAGE: baseUrl+testimonial.image.url,
+                Names.CONTENT:testimonial.content,
+                Names.RATING:testimonial.rating
+            }
+            testimonialData.append(data)
+        return ResponseBack(
+            message=ResponseMessage.IMAGES_FOUND_SUCCESS,
+            data=testimonialData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.IMAGE_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.ERROR
+        )  
+
+@api_view(['GET'])
+def getProductDropdownView(request):
+    try:
+        products = Product.objects.all()
+        productData = []
+        for product in products:
+            slug = generate_blog_slug(product.Name, product.id)
+            data = {
+                Names.ID:product.id,
+                Names.LABLE:product.Name,
+                Names.URL:f"/products/{slug}"
+            }
+            productData.append(data)
+        return ResponseBack(
+            message=ResponseMessage.PRODUCTS_FOUND,
+            data=productData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=str(e),
+            data={},
+            code=ResponseCode.FAILURE
+        )
+@api_view(['GET'])
+def getClientLogoView(request):
+    try:
+        logos = ClientLogo.objects.all()
+        logoData = []
+        baseUrl = get_base_url()
+        for logo in logos:
+            data = {
+                Names.ID:logo.id,
+                Names.IMAGE: baseUrl+logo.image.url,
+                Names.INDEX:logo.index
+            }
+            logoData.append(data)
+        return ResponseBack(
+            message=ResponseMessage.IMAGES_FOUND_SUCCESS,
+            data=logoData,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.IMAGE_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.ERROR
+        ) 
 # ***************************** Helper functions *****************************
 
 def get_base_url():
@@ -272,8 +400,11 @@ def getProductDisplayData(product):
     try:
         base_url = get_base_url()
 
+        slug = generate_blog_slug(product.Name, product.id)
+
         data = {
             Names.ID: product.id,
+            Names.SLUG: slug,
             Names.NAME: product.Name,
             Names.ABOUT: product.About,
             Names.RATING: float(product.Rating),
@@ -303,6 +434,7 @@ def getProductData(product):
         base_url = get_base_url()
         related_products = []
         relProds = product.RelatedProducts.all()
+        slug = generate_blog_slug(product.Name, product.id)
         for rel in relProds:
             reldata = getProductDisplayData(rel)
             if reldata.code == ResponseCode.SUCCESS:
@@ -311,6 +443,7 @@ def getProductData(product):
             Names.ID: product.id,
             Names.NAME: product.Name,
             Names.ABOUT: product.About,
+            Names.SLUG: slug,
             Names.MODEL:product.Model,
             Names.SKU:product.Sku,
             Names.PRICE:product.Price,
@@ -343,3 +476,9 @@ def getProductData(product):
             data=str(e),
             code=ResponseCode.FAILURE
         )
+
+def generate_blog_slug(title, id):
+    slug = title.lower()
+    slug = slug.replace(" ", "-")
+    slug = re.sub(r"[^\w\-]+", "", slug)
+    return f"{slug}-{id}"
