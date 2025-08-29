@@ -171,16 +171,25 @@ def GetCitys(request):
             code=ResponseCode.ERROR,
             data=str(e))
 
-@api_view(['POST'])
+@api_view(['GET'])
 def GetLocationPage(request,locationId):
     try:
         loc = request.data.get(Names.LOCATION)
         location = Location.objects.filter(id=locationId).first()
         page = location.locationpage.first()
+        locationBanners = page.banners.all()
+        bannerData = []
+        for banner in locationBanners:
+            bannerData.append(Names.BASE_URL + banner.bannerImage.url)
+
         data = {
-            Names.TITLE: page.Title,
-            Names.DESCRIPTION: page.Description,
-            Names.IMAGE: Names.BASE_URL + page.BannerImage.url,
+            Names.TITLE: page.Heading,
+            Names.BANNERS: bannerData,
+            Names.TOP_PARAGRAPH: page.TopParagraph,
+            Names.HEADING: page.Heading,
+            Names.SUB_HEADING: page.SubHeading,
+            Names.BOTTOM_PARAGRAPH: page.BottomParagraph,
+            Names.IMAGE: Names.BASE_URL + page.Image.url,
             Names.META_TITLE: page.MetaTitle,
             Names.META_DESCRIPTION: page.MetaDescription,
             Names.META_KEYWORD: page.MetaKeywords,

@@ -62,10 +62,12 @@ class Location(models.Model):
 
 class LocationPage(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE,related_name='locationpage')
-    BannerImage = models.ImageField(upload_to='Location_images/')
+    Image = models.ImageField(upload_to='Location_images/')
 
-    Title = models.CharField(max_length=100, null=True, blank=True)
-    Description = models.TextField(null=True, blank=True)
+    TopParagraph = models.JSONField(default=list,null=True, blank=True)
+    Heading = models.CharField(max_length=100, null=True, blank=True)
+    SubHeading = models.CharField(max_length=100, null=True, blank=True)
+    BottomParagraph = models.JSONField(default=list,null=True, blank=True)
 
     MetaTitle = models.CharField(max_length=100, null=True, blank=True)
     MetaDescription = models.CharField(max_length=100, null=True, blank=True)
@@ -73,6 +75,13 @@ class LocationPage(models.Model):
     MetaUrl = models.CharField(max_length=100, null=True, blank=True)
     MetaCanonical = models.CharField(max_length=100, null=True, blank=True)
 
+class PageBanner(models.Model):
+    page = models.ForeignKey(LocationPage,related_name='banners',on_delete=models.CASCADE)
+    bannerImage = models.ImageField(upload_to='page_banners/')
+    index = models.IntegerField(default=99)
+    def save(self, *args, **kwargs):
+        indexShifting(self)
+        super().save(*args, **kwargs)
 class Blog(models.Model):
     writer = models.CharField( max_length=50)
     title = models.CharField( max_length=200)
