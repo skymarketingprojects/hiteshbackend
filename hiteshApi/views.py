@@ -307,7 +307,7 @@ def getHomeVideoView(request):
         )   
 
 @api_view(['GET'])
-def getBrochureView(request,productId):
+def getBrochureView(request):
     try:
         brochure = ProductBroucher.objects.filter(id=productId).first()
         base_url = get_base_url()
