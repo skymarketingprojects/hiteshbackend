@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view
-from .models import Product, ProductType, BaseUrl,Location,State,Blog,HeroImages,Gallery,Testimonial,ClientLogo,HomeVideo
+from .models import Product, ProductType, BaseUrl,Location,State,Blog,HeroImages,Gallery,Testimonial,ClientLogo,HomeVideo,ProductBroucher
 from django.shortcuts import get_object_or_404
 from .messages.ResponseBack import ResponseBack, LocalResponseBack
 from .messages.ResponseCode import ResponseCode
@@ -306,6 +306,29 @@ def getHomeVideoView(request):
             code=ResponseCode.FAILURE
         )   
 
+@api_view(['GET'])
+def getBrochureView(request,productId):
+    try:
+        brochure = ProductBroucher.objects.filter(id=productId).first()
+        base_url = get_base_url()
+        if not brochure:
+            return ResponseBack(
+                message=ResponseMessage.BROCHURE_FOUND_ERROR,
+                data={},
+                code=ResponseCode.FAILURE
+            )
+        data = base_url+ brochure.File.url
+        return ResponseBack(
+            message=ResponseMessage.BROCHURE_FOUND_SUCCESS,
+            data=data,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.BROCHURE_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.FAILURE
+        )
 @api_view(['GET'])
 def getGalleryImage(request):
     try:

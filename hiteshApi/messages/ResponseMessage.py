@@ -25,3 +25,5 @@ class ResponseMessage:
     HOME_VIDEO_FOUND_SUCCESS = "Home video found"
     HOME_VIDEO_FOUND_ERROR = "Home video not found"
     
+    BROCHURE_FOUND_SUCCESS = "Product brochure found"
+    BROCHURE_FOUND_ERROR = "Product brochure not found"
