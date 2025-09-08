@@ -18,6 +18,7 @@ urlpatterns = [
     path("testimonials/",views.getTestimonialView,name="get_testimonial"),
     path("client-logos/",views.getClientLogoView,name="get_client_logos"),
     path("product-dropdown/",views.getProductDropdownView,name="get_product_dropdown"),
+    path("home-video/",views.getHomeVideoView,name="get_home_video"),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

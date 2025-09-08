@@ -7,6 +7,9 @@ class ProductType(models.Model):
 
     def __str__(self):
         return self.Value
+class ProductBroucher(models.Model):
+    File = models.FileField(upload_to='brouchers/')
+
 
 class Product(models.Model):
     Name = models.CharField(max_length=200)
@@ -23,7 +26,7 @@ class Product(models.Model):
     ProductType = models.ForeignKey(ProductType, on_delete=models.SET_NULL, null=True)
     RelatedProducts = models.ManyToManyField('self', blank=True)
 
-
+    Broucher = models.ForeignKey(ProductBroucher, on_delete=models.SET_NULL, null=True, blank=True)
     Warranty = models.CharField(max_length=200,default="")
     Shipping = models.CharField(max_length=200,default="")
     Specification = models.JSONField(default=list,help_text='json format [\n{"label": "Roller Size",\n"value": "127 x 63mm (5\" x 2.5\")"\n}\n]')
@@ -121,6 +124,10 @@ class HeroImages(models.Model):
     def save(self, *args, **kwargs):
         indexShifting(self)
         super().save(*args, **kwargs)
+
+class HomeVideo(models.Model):
+    video = models.FileField(upload_to="homeVideo/videos/")
+    fallback = models.ImageField(upload_to="homeVideo/fallback/", null=True, blank=True)
 
 class Gallery(models.Model):
     image = models.ImageField(upload_to="gallery/")

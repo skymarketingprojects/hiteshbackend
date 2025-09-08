@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view
-from .models import Product, ProductType, BaseUrl,Location,State,Blog,HeroImages,Gallery,Testimonial,ClientLogo
+from .models import Product, ProductType, BaseUrl,Location,State,Blog,HeroImages,Gallery,Testimonial,ClientLogo,HomeVideo
 from django.shortcuts import get_object_or_404
 from .messages.ResponseBack import ResponseBack, LocalResponseBack
 from .messages.ResponseCode import ResponseCode
@@ -278,6 +278,33 @@ def getHeroImagesView(request):
             data=str(e),
             code=ResponseCode.ERROR
         )
+@api_view(['GET'])
+def getHomeVideoView(request):
+    try:
+        homevideo = HomeVideo.objects.first()
+        base_url = get_base_url()
+        if not homevideo:
+            return ResponseBack(
+                message=ResponseMessage.HOME_VIDEO_FOUND_ERROR,
+                data={},
+                code=ResponseCode.FAILURE
+            )
+        data = {
+            Names.ID: homevideo.id,
+            Names.VIDEO: base_url+ homevideo.video.url,
+            Names.FALLBACK: base_url+ homevideo.fallback.url
+        }
+        return ResponseBack(
+            message=ResponseMessage.HOME_VIDEO_FOUND_SUCCESS,
+            data=data,
+            code=ResponseCode.SUCCESS
+        )
+    except Exception as e:
+        return ResponseBack(
+            message=ResponseMessage.HOME_VIDEO_FOUND_ERROR,
+            data=str(e),
+            code=ResponseCode.FAILURE
+        )   
 
 @api_view(['GET'])
 def getGalleryImage(request):
@@ -344,6 +371,7 @@ def getProductDropdownView(request):
             data = {
                 Names.ID:product.id,
                 Names.LABLE:product.Name,
+                Names.PRODUCT_TYPE:product.ProductType.Value,
                 Names.URL:f"/products/{slug}"
             }
             productData.append(data)
@@ -471,6 +499,7 @@ def getProductData(product):
             Names.SPECIFICATION: product.Specification,
             Names.APPLICATION: product.Application,
             Names.TECHNICAL_ADVANTAGE: product.TechnicalAdvantage,
+            Names.BROUCHER: base_url + product.Broucher.File.url if product.Broucher else None,
         }
 
         return LocalResponseBack(
@@ -491,3 +520,4 @@ def generate_blog_slug(title, id):
     slug = slug.replace(" ", "-")
     slug = re.sub(r"[^\w\-]+", "", slug)
     return f"{slug}-{id}"
+

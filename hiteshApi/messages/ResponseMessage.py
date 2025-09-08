@@ -21,4 +21,7 @@ class ResponseMessage:
 
     IMAGES_FOUND_SUCCESS = "Images found"
     IMAGE_FOUND_ERROR = "Images not found"
+
+    HOME_VIDEO_FOUND_SUCCESS = "Home video found"
+    HOME_VIDEO_FOUND_ERROR = "Home video not found"
     

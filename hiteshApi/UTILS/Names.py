@@ -20,6 +20,7 @@ class Names:
     LOCATIONS = "locations"
     LOCATION = 'location'
     PRODUCTS = "products"
+    BROUCHER="broucher"
 
     MODEL="model"
     SKU="sku"
@@ -58,4 +59,7 @@ class Names:
     COMPANY="company"
 
     BASE_URL = 'https://backend.malviyarollingmill.com'
+
+    FALLBACK= 'fallback'
+    VIDEO = 'video'
 
