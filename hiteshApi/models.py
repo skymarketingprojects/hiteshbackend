@@ -34,7 +34,9 @@ class Product(models.Model):
     TechnicalAdvantage = models.JSONField(default=list,help_text='json format ["Compact footprint","Minimal maintenance required"]')
 
     def __str__(self):
-        return self.Name
+        if self.ProductType:
+            return f"{self.Name} - {self.ProductType.Value}"
+        return f"{self.Name}"
 
 class ProductDescription(models.Model):
     Product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='Description')
