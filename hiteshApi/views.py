@@ -154,7 +154,7 @@ def GetCitys(request):
                     Names.LABLE: location.lable,
                     Names.NAME: location.name,
                     Names.ID: location.id,
-                    Names.IMAGE: Names.BASE_URL + location.image.url}
+                    Names.IMAGE:location.image.url}
                 locations_data.append(locadata)
             state_data = {
                 Names.NAME: state.name,
@@ -180,7 +180,7 @@ def GetLocationPage(request,locationId):
         locationBanners = page.banners.all()
         bannerData = []
         for banner in locationBanners:
-            bannerData.append(Names.BASE_URL + banner.bannerImage.url)
+            bannerData.append(banner.bannerImage.url)
 
         data = {
             Names.TITLE: page.Heading,
@@ -189,7 +189,7 @@ def GetLocationPage(request,locationId):
             Names.HEADING: page.Heading,
             Names.SUB_HEADING: page.SubHeading,
             Names.BOTTOM_PARAGRAPH: page.BottomParagraph,
-            Names.IMAGE: Names.BASE_URL + page.Image.url,
+            Names.IMAGE:page.Image.url,
             Names.META_TITLE: page.MetaTitle,
             Names.META_DESCRIPTION: page.MetaDescription,
             Names.META_KEYWORD: page.MetaKeywords,
@@ -259,11 +259,10 @@ def getHeroImagesView(request):
     try:
         images = HeroImages.objects.all()
         imageData = []
-        baseUrl = get_base_url()
         for image in images:
             data = {
                 Names.ID:image.id,
-                Names.IMAGE:baseUrl+image.image.url,
+                Names.IMAGE:image.image.url,
                 Names.INDEX:image.index
             }
             imageData.append(data)
@@ -282,7 +281,6 @@ def getHeroImagesView(request):
 def getHomeVideoView(request):
     try:
         homevideo = HomeVideo.objects.first()
-        base_url = get_base_url()
         if not homevideo:
             return ResponseBack(
                 message=ResponseMessage.HOME_VIDEO_FOUND_ERROR,
@@ -291,8 +289,8 @@ def getHomeVideoView(request):
             )
         data = {
             Names.ID: homevideo.id,
-            Names.VIDEO: base_url+ homevideo.video.url,
-            Names.FALLBACK: base_url+ homevideo.fallback.url
+            Names.VIDEO:homevideo.video.url,
+            Names.FALLBACK:homevideo.fallback.url
         }
         return ResponseBack(
             message=ResponseMessage.HOME_VIDEO_FOUND_SUCCESS,
@@ -310,14 +308,13 @@ def getHomeVideoView(request):
 def getBrochureView(request):
     try:
         brochure = ProductBroucher.objects.first()
-        base_url = get_base_url()
         if not brochure:
             return ResponseBack(
                 message=ResponseMessage.BROCHURE_FOUND_ERROR,
                 data={},
                 code=ResponseCode.FAILURE
             )
-        data = base_url+ brochure.File.url
+        data =brochure.File.url
         return ResponseBack(
             message=ResponseMessage.BROCHURE_FOUND_SUCCESS,
             data=data,
@@ -333,12 +330,11 @@ def getBrochureView(request):
 def getGalleryImage(request):
     try:
         galleryImages = Gallery.objects.all()
-        baseUrl = get_base_url()
         imageData = []
         for gallery in galleryImages:
             data= {
                 Names.ID:gallery.id,
-                Names.IMAGE:baseUrl+gallery.image.url,
+                Names.IMAGE:gallery.image.url,
                 Names.INDEX: gallery.index,
                 Names.PRODUCT_TYPE:{Names.NAME:gallery.ProductType.Value,Names.ID:gallery.ProductType.id} 
             }
@@ -360,14 +356,13 @@ def getTestimonialView(request):
     try:
         testimonials = Testimonial.objects.all()
         testimonialData = []
-        baseUrl = get_base_url()
         for testimonial in testimonials:
             data = {
                 Names.ID:testimonial.id,
                 Names.NAME:testimonial.name,
                 Names.POSITION:testimonial.position,
                 Names.COMPANY:testimonial.company,
-                Names.IMAGE: baseUrl+testimonial.image.url,
+                Names.IMAGE:testimonial.image.url,
                 Names.CONTENT:testimonial.content,
                 Names.RATING:testimonial.rating
             }
@@ -414,11 +409,10 @@ def getClientLogoView(request):
     try:
         logos = ClientLogo.objects.all()
         logoData = []
-        baseUrl = get_base_url()
         for logo in logos:
             data = {
                 Names.ID:logo.id,
-                Names.IMAGE: baseUrl+logo.image.url,
+                Names.IMAGE: logo.image.url,
                 Names.INDEX:logo.index
             }
             logoData.append(data)
@@ -435,21 +429,17 @@ def getClientLogoView(request):
         ) 
 # ***************************** Helper functions *****************************
 
-def get_base_url():
-    base_url_obj = BaseUrl.objects.first()
-    return base_url_obj.url if base_url_obj else Names.BASE_URL
 
 def getBlogData( blog):
         try:
-            base_url = Names.BASE_URL
             data = {
                 Names.ID: blog.id,
                 Names.TITLE: blog.title,
                 Names.CONTENT: blog.text.html,
                 Names.WRITER: blog.writer,
                 Names.DESCRIPTION: blog.discription,
-                Names.IMAGE_SQ: base_url + blog.image_sq.url,
-                Names.IMAGE_HR: base_url + blog.image_hr.url,
+                Names.IMAGE_SQ:blog.image_sq.url,
+                Names.IMAGE_HR:blog.image_hr.url,
                 Names.CREATED_AT: blog.created_at
             }
             return LocalResponseBack(ResponseMessage.BLOG_FOUND_SUCESS, data=data, code=ResponseCode.SUCCESS)
@@ -458,7 +448,6 @@ def getBlogData( blog):
 
 def getProductDisplayData(product):
     try:
-        base_url = get_base_url()
 
         slug = generate_blog_slug(product.Name, product.id)
 
@@ -468,13 +457,13 @@ def getProductDisplayData(product):
             Names.NAME: product.Name,
             Names.ABOUT: product.About,
             Names.RATING: float(product.Rating),
-            Names.IMAGE:base_url+product.Image.url,
+            Names.IMAGE:product.Image.url,
             Names.PRICE: product.Price,
             Names.TAG: product.Tag,
             Names.KEY_FEATURES: product.KeyFeatures,
             Names.NO_OF_REVIEWS: product.NoOfReviews,
             Names.PRODUCT_TYPE: {Names.NAME:product.ProductType.Value,Names.ID:product.ProductType.id} if product.ProductType else None,
-            Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
+            Names.IMAGES: [img.Image.url for img in product.Images.all()],
         }
 
         return LocalResponseBack(
@@ -491,7 +480,6 @@ def getProductDisplayData(product):
         )
 def getProductData(product):
     try:
-        base_url = get_base_url()
         related_products = []
         relProds = product.RelatedProducts.all()
         slug = generate_blog_slug(product.Name, product.id)
@@ -516,13 +504,13 @@ def getProductData(product):
             Names.NO_OF_REVIEWS: product.NoOfReviews,
             Names.PRODUCT_TYPE:{Names.NAME:product.ProductType.Value,Names.ID:product.ProductType.id}  if product.ProductType else None,
             Names.RELATED_PRODUCTS: related_products,
-            Names.IMAGES: [base_url + img.Image.url for img in product.Images.all()],
+            Names.IMAGES: [img.Image.url for img in product.Images.all()],
             Names.DESCRIPTION: product.Description.Description,
             Names.KEY_POINTS: product.Description.KeyPoints,
             Names.SPECIFICATION: product.Specification,
             Names.APPLICATION: product.Application,
             Names.TECHNICAL_ADVANTAGE: product.TechnicalAdvantage,
-            Names.BROUCHER: base_url + product.Broucher.File.url if product.Broucher else None,
+            Names.BROUCHER: product.Broucher.File.url if product.Broucher else None,
         }
 
         return LocalResponseBack(

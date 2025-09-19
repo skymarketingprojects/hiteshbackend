@@ -95,11 +95,11 @@ WSGI_APPLICATION = 'hiteshMalvia.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hitesh_db',
-        'USER': 'hiteshuser',
-        'PASSWORD': 'hiteshposgresql',
-        'HOST': '147.93.27.25',
-        'PORT': '5432',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
     }
 }
 
