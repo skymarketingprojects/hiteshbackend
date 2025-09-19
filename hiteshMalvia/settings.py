@@ -84,10 +84,20 @@ WSGI_APPLICATION = 'hiteshMalvia.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'hitesh_db',
+        'USER': 'hiteshuser',
+        'PASSWORD': 'hiteshposgresql',
+        'HOST': '147.93.27.25',
+        'PORT': '5432',
     }
 }
 
@@ -126,7 +136,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
+STATIC_URL = 'https://backend.malviyarollingmill.com/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static_root']
 # STATIC_ROOT = 'static/'
 STATIC_ROOT = '/var/www/hitesh/static/'
@@ -134,7 +145,7 @@ STATIC_ROOT = '/var/www/hitesh/static/'
 # MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT = '/var/www/hitesh/media/'
 # MEDIA_URL = '/var/www/hightech/media/'
-MEDIA_URL = 'media/'
+MEDIA_URL = 'https://backend.malviyarollingmill.com/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
