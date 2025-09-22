@@ -4,3 +4,5 @@ db.sqlite3
 /var
 /var/*
 .env
+
+*.json
